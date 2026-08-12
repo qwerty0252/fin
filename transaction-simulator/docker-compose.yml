@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    container_name: bankops-api
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - rabbitmq
+      - redis
+
+  worker-processor:
+    build: .
+    container_name: bankops-worker-processor
+    command: python workers/processor.py
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - rabbitmq
+      - redis
+
+  worker-retry:
+    build: .
+    container_name: bankops-worker-retry
+    command: python workers/retry_worker.py
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - rabbitmq
+      - redis
+
+  worker-reversal:
+    build: .
+    container_name: bankops-worker-reversal
+    command: python workers/reversal_worker.py
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - rabbitmq
+      - redis
+
+  postgres:
+    image: postgres:16
+    container_name: bankops-postgres
+    environment:
+      POSTGRES_USER: simulator
+      POSTGRES_PASSWORD: simulator
+      POSTGRES_DB: simulator
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./docker/postgres/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: bankops-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  redis:
+    image: redis:7
+    container_name: bankops-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  pg_data:

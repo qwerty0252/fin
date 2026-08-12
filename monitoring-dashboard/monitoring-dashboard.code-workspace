@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../transaction-simulator"
+		}
+	],
+	"settings": {}
+}

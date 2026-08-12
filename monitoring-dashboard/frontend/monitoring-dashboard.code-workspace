@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../transaction-simulator"
+		},
+		{
+			"path": "../../reconciliation-engine"
+		}
+	],
+	"settings": {}
+}

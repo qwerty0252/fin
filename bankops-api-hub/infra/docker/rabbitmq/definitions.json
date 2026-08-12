@@ -1,0 +1,96 @@
+{
+  "rabbit_version": "3.13",
+  "vhosts": [
+    { "name": "/" },
+    { "name": "bankops" }
+  ],
+  "permissions": [
+    {
+      "user": "bankops",
+      "vhost": "bankops",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "bankops.events",
+      "vhost": "bankops",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false
+    },
+    {
+      "name": "bankops.dlx",
+      "vhost": "bankops",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false
+    }
+  ],
+  "queues": [
+    {
+      "name": "bankops.transactions",
+      "vhost": "bankops",
+      "durable": true,
+      "arguments": {
+        "x-dead-letter-exchange": "bankops.dlx",
+        "x-dead-letter-routing-key": "bankops.dead_letters"
+      }
+    },
+    {
+      "name": "bankops.orchestration",
+      "vhost": "bankops",
+      "durable": true,
+      "arguments": {
+        "x-dead-letter-exchange": "bankops.dlx",
+        "x-dead-letter-routing-key": "bankops.dead_letters"
+      }
+    },
+    {
+      "name": "bankops.notifications",
+      "vhost": "bankops",
+      "durable": true,
+      "arguments": {
+        "x-dead-letter-exchange": "bankops.dlx",
+        "x-dead-letter-routing-key": "bankops.dead_letters"
+      }
+    },
+    {
+      "name": "bankops.dead_letters",
+      "vhost": "bankops",
+      "durable": true
+    }
+  ],
+  "bindings": [
+    {
+      "source": "bankops.events",
+      "vhost": "bankops",
+      "destination": "bankops.transactions",
+      "destination_type": "queue",
+      "routing_key": "bankops.transactions"
+    },
+    {
+      "source": "bankops.events",
+      "vhost": "bankops",
+      "destination": "bankops.orchestration",
+      "destination_type": "queue",
+      "routing_key": "bankops.orchestration"
+    },
+    {
+      "source": "bankops.events",
+      "vhost": "bankops",
+      "destination": "bankops.notifications",
+      "destination_type": "queue",
+      "routing_key": "bankops.notifications"
+    },
+    {
+      "source": "bankops.dlx",
+      "vhost": "bankops",
+      "destination": "bankops.dead_letters",
+      "destination_type": "queue",
+      "routing_key": "bankops.dead_letters"
+    }
+  ]
+}

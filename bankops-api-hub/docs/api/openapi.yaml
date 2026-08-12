@@ -1,0 +1,162 @@
+openapi: "3.1.0"
+info:
+  title: BankOps Integration Hub API
+  version: "0.1.0"
+  description: |
+    The BankOps Integration Hub exposes a unified REST API for transaction initiation,
+    workflow management, connector operations and event publishing.
+
+    Authentication: JWT Bearer token or X-API-Key header.
+  contact:
+    name: BankOps Engineering
+    email: engineering@bankops.io
+
+servers:
+  - url: http://localhost:8000
+    description: Local development (API Gateway)
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    CreateTransactionRequest:
+      type: object
+      required: [tenant_id, transaction_type, amount, sender_account, receiver_account]
+      properties:
+        tenant_id:
+          type: string
+        transaction_type:
+          type: string
+          enum: [transfer, payment, withdrawal, deposit]
+        amount:
+          type: number
+          format: decimal
+          minimum: 0.01
+        currency:
+          type: string
+          default: NGN
+          minLength: 3
+          maxLength: 3
+        sender_account:
+          type: string
+        sender_bank_code:
+          type: string
+        receiver_account:
+          type: string
+        receiver_bank_code:
+          type: string
+        description:
+          type: string
+        channel:
+          type: string
+          default: api
+
+    TransactionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        reference:
+          type: string
+        correlation_id:
+          type: string
+        status:
+          type: string
+          enum: [initiated, validating, pending, processing, completed, failed, reversed, expired]
+        amount:
+          type: string
+        currency:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+
+paths:
+  /health:
+    get:
+      summary: API Gateway health
+      tags: [Health]
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+
+  /auth/token:
+    post:
+      summary: Obtain access token
+      tags: [Auth]
+      security: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: JWT token issued
+        "401":
+          description: Invalid credentials
+
+  /api/v1/transactions:
+    post:
+      summary: Create a new transaction
+      tags: [Transactions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTransactionRequest"
+      responses:
+        "201":
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+        "422":
+          description: Validation error
+
+  /api/v1/transactions/{transaction_id}:
+    get:
+      summary: Get transaction by ID
+      tags: [Transactions]
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Transaction found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionResponse"
+        "404":
+          description: Not found

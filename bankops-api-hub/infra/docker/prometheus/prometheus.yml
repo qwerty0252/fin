@@ -1,0 +1,39 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "api-gateway"
+    static_configs:
+      - targets: ["api-gateway:8000"]
+    metrics_path: /metrics
+
+  - job_name: "transaction-service"
+    static_configs:
+      - targets: ["transaction-service:8001"]
+    metrics_path: /metrics
+
+  - job_name: "event-bus"
+    static_configs:
+      - targets: ["event-bus:8002"]
+    metrics_path: /metrics
+
+  - job_name: "orchestration-engine"
+    static_configs:
+      - targets: ["orchestration-engine:8003"]
+    metrics_path: /metrics
+
+  - job_name: "connector-framework"
+    static_configs:
+      - targets: ["connector-framework:8004"]
+    metrics_path: /metrics
+
+  - job_name: "notification-service"
+    static_configs:
+      - targets: ["notification-service:8005"]
+    metrics_path: /metrics
+
+  - job_name: "rabbitmq"
+    static_configs:
+      - targets: ["rabbitmq:15692"]
+    metrics_path: /metrics
